@@ -38,29 +38,4 @@ def get_dog():  # Cсылки на собак
         file_extension = re.search("([^.]*)$", url).group(1).lower()
     return url
 
-# -----------------------------------------------------------------------
-def get_cur_pairs():
-    lst_cur_pairs = []
-    req_currency_list = requests.get(f'https://currate.ru/api/?get=currency_list&key={5241329098:AAFwTwBMDbk8fD-GVHlXBlz52jI9X4SWoVk}')
-    if req_currency_list.status_code == 200:
-        currency_list_json = req_currency_list.json()
-        for pairs in currency_list_json["data"]:
-            if pairs[3:] == "RUB":
-                lst_cur_pairs.append(pairs)
-    return lst_cur_pairs
-
-
-# -----------------------------------------------------------------------
-def get_cur():
-    txt_curses = ""
-    txt_pairs = ",".join(get_cur_pairs())
-    req_currency_rates = requests.get(f'https://currate.ru/api/?get=rates&pairs={txt_pairs}&key={5241329098:AAFwTwBMDbk8fD-GVHlXBlz52jI9X4SWoVk}')
-    if req_currency_rates.status_code == 200:
-        currency_rates = req_currency_rates.json()
-        for pairs, rates in currency_rates["data"].items():
-            txt_curses += f"{pairs} : {rates}\n"
-    else:
-        txt_curses = req_currency_rates.text
-    return txt_curses
-
 # ---------------------------------------------------------------------
