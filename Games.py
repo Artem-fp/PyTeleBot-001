@@ -3,8 +3,6 @@ import threading
 from MenuBot import Menu, goto_menu
 from telebot import types
 
-# -----------------------------------------------------------------------
-# вместо того, что бы делать еще один класс, обойдёмся без него - подумайте, почему и как
 activeGames = {}  # Тут будем накапливать все активные игры. У пользователя может быть только одна активная игра
 
 def newgame(chatID, newGame):
@@ -13,7 +11,6 @@ def newgame(chatID, newGame):
 
 def getgame(chatID):
     return activeGames.get(chatID)
-
 
 def stopgame(chatID):
     activeGames.pop(chatID)
@@ -118,6 +115,12 @@ class Game21:
             self.status = None  # статус игры, True - игрок выиграл, False - Игрок проиграл, None - Игра продолжается
 
     # ---------------------------------------------------------------------
+    def getRandomChoice(cls):
+        lenValues = len(cls.values)
+        import random
+        rndInd = random.randint(0, lenValues-1)
+        return cls.values[rndInd]
+
     def new_pack(self, deck_count, jokers_enabled=False):
         txtJoker = "&jokers_enabled=true" if jokers_enabled else ""
         response = requests.get(f"https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count={deck_count}" + txtJoker)
@@ -167,9 +170,8 @@ class Game21:
 
         return text_game
 
-
 # -----------------------------------------------------------------------
-class RPS:
+class GameRPS:
     values = ["Камень", "Ножницы", "Бумага"]
     name = "Игра Камень-Ножницы-Бумага (Мультиплеер)"
     text_rules = "<b>Победитель определяется по следующим правилам:</b>\n" \
@@ -189,7 +191,7 @@ class RPS:
     def getRandomChoice(cls):
         lenValues = len(cls.values)
         import random
-        rndInd = random.randint(0, lenValues-1)
+        rndInd = random.randint(0, lenValues - 1)
         return cls.values[rndInd]
 
     def playerChoice(self, player1Choice):
@@ -270,10 +272,10 @@ class GameRPS_Multiplayer:
         print("DEL")
         remotePlayer = self.players.pop(playerID)
         try:
-            self.objBot.delete_message(chat_id=remotePlayer.id, message_id=remotePlayer.gameMessage.id)
+            self.objBot.delete_message(chatID=remotePlayer.id, message_id=remotePlayer.gameMessage.id)
         except:
             pass
-        self.objBot.send_message(chat_id=remotePlayer.id, text="Мне жаль, вас выкинуло из игры!")
+        self.objBot.send_message(chatID=remotePlayer.id, text="Мне жаль, вас выкинуло из игры!")
         goto_menu(self.objBot, remotePlayer.id, "Игры")
         self.findWiner()  # как только игрок выходит, проверим среди оставшихся есть ли победитель
         if len(self.players.values()) == 1:
@@ -408,24 +410,24 @@ class GameRPS_Multiplayer:
             for player in self.players.values():
                 if player.id is not None and player.id not in excludingPlayers:
                     textIndividual = f"\n Ваш выбор: {player.choice}, ждём остальных!" if player.choice is not None else "\n"
-                    self.objBot.edit_message_caption(chat_id=player.id, message_id=player.gameMessage.id, caption=self.textGame + textIndividual, parse_mode='HTML',
+                    self.objBot.edit_message_caption(chatID=player.id, message_id=player.gameMessage.id, caption=self.textGame + textIndividual, parse_mode='HTML',
                                                      reply_markup=player.gameMessage.reply_markup)
         except:
             pass
 # =============================================
-def callback_worker(bot, cur_user, cmd, par, call):
-    chat_id = call.message.chat.id
+def callback_worker(bot, cur_user, cmd, par, call, ms_text=None):
+    chatID = call.message.chat.id
     message_id = call.message.id
 
     if cmd == "newGame":
-        # bot.edit_message_reply_markup(chat_id, message_id, reply_markup=None)  # удалим кнопки начала игры из чата
-        bot.delete_message(chat_id, message_id)
-        newgame(chat_id, GameRPS_Multiplayer(bot, cur_user))
+        # bot.edit_message_reply_markup(chatID, message_id, reply_markup=None)  # удалим кнопки начала игры из чата
+        bot.delete_message(chatID, message_id)
+        newgame(chatID, GameRPS_Multiplayer(bot, cur_user))
         bot.answer_callback_query(call.id)
 
     elif cmd == "Join":
-        # bot.edit_message_reply_markup(chat_id, message_id, reply_markup=None)  # удалим кнопки начала игры из чата
-        bot.delete_message(chat_id, message_id)
+        # bot.edit_message_reply_markup(chatID, message_id, reply_markup=None)  # удалим кнопки начала игры из чата
+        bot.delete_message(chatID, message_id)
         gameRSPMult = Menu.getExtPar(par)
         if gameRSPMult is None:  # если наткнулись на кнопку, которой быть не должно
             return
@@ -434,56 +436,55 @@ def callback_worker(bot, cur_user, cmd, par, call):
         bot.answer_callback_query(call.id)
 
     elif cmd == "Exit":
-        bot.delete_message(chat_id, message_id)
+        bot.delete_message(chatID, message_id)
         gameRSPMult = Menu.getExtPar(par)
         if gameRSPMult is not None:
             gameRSPMult.delPlayer(cur_user.id)
-        goto_menu(bot, chat_id, "Игры")
+        goto_menu(bot, chatID, "Игры")
         bot.answer_callback_query(call.id)
 
     elif "Choice-" in cmd:
         gameRSPMult = Menu.getExtPar(par)
         if gameRSPMult is None:  # если наткнулись на кнопку, которой быть не должно - удалим её из чата
-            bot.delete_message(chat_id, message_id)
+            bot.delete_message(chatID, message_id)
         else:
             choice = cmd[7:]
             gameRSPMult.playerChoice(cur_user.id, choice)
         bot.answer_callback_query(call.id)
-
-# =======================================
+# -----------------------------------------------------------------------
 def get_text_messages(bot, cur_user, message):
-    chat_id = message.chat.id
+    chatID = message.chat.id
     ms_text = message.text
 
     # ======================================= реализация игры в 21
     if ms_text == "Карту!":
-        game21 = getgame(chat_id)
+        game21 = getgame(chatID)
         if game21 == None:  # если мы случайно попали в это меню, а объекта с игрой нет
-            goto_menu(bot, chat_id, "Выход")
+            goto_menu(bot, chatID, "Выход")
             return
 
         text_game = game21.get_cards(1)
-        bot.send_media_group(chat_id, media=game21.MediaCards)  # получим и отправим изображения карт
-        bot.send_message(chat_id, text=text_game)
+        bot.send_media_group(chatID, media=game21.mediaCards)  # получим и отправим изображения карт
+        bot.send_message(chatID, text=text_game)
 
         if game21.status is not None:  # выход, если игра закончена
-            stopgame(chat_id)
-            goto_menu(bot, chat_id, "Выход")
+            stopgame(chatID)
+            goto_menu(bot, chatID, "Выход")
             return
 
     elif ms_text == "Стоп!":
-        stopgame(chat_id)
-        goto_menu(bot, chat_id, "Выход")
+        stopgame(chatID)
+        goto_menu(bot, chatID, "Выход")
         return
 
     # ======================================= реализация игры Камень-ножницы-бумага
-    elif ms_text in RPS.values:
-        gameRSP = getgame(chat_id)
+    elif ms_text in GameRPS.values:
+        gameRSP = getgame(chatID)
         if gameRSP is None:  # если мы случайно попали в это меню, а объекта с игрой нет
-            goto_menu(bot, chat_id, "Выход")
+            goto_menu(bot, chatID, "Выход")
             return
         text_game = gameRSP.playerChoice(ms_text)
-        bot.send_message(chat_id, text=text_game)
+        bot.send_message(chatID, text=text_game)
         gameRSP.newGame()
 
     # ======================================= реализация игры Камень-ножницы-бумага Multiplayer
@@ -500,8 +501,8 @@ def get_text_messages(bot, cur_user, message):
         btn = types.InlineKeyboardButton(text="Вернуться", callback_data="GameRPSm|Exit")
         keyboard.add(btn)
 
-        bot.send_message(chat_id, text=GameRPS_Multiplayer.name, reply_markup=types.ReplyKeyboardRemove())
-        bot.send_message(chat_id, "Вы хотите начать новую игру, или присоединиться к существующей?", reply_markup=keyboard)
+        bot.send_message(chatID, text=GameRPS_Multiplayer.name, reply_markup=types.ReplyKeyboardRemove())
+        bot.send_message(chatID, "Вы хотите начать новую игру, или присоединиться к существующей?", reply_markup=keyboard)
 
 # -----------------------------------------------------------------------
 if __name__ == "__main__":

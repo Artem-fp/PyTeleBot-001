@@ -54,7 +54,7 @@ def get_text_messages(message):
         if subMenu.name == "Игра в 21":
             game21 = Games.newgame(chat_id, Games.Game21(jokers_enabled=True))  # создаём новый экземпляр игры
             text_game = game21.get_cards(2)  # просим 2 карты в начале игры
-            bot.send_media_group(chat_id, media=game21.Medias)  # получим и отправим изображения карт
+            bot.send_media_group(chat_id, media=game21.mediaCards)  # получим и отправим изображения карт
             bot.send_message(chat_id, text=text_game)
 
         elif subMenu.name == "Игра КНБ":
