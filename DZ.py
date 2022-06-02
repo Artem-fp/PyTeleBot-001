@@ -29,11 +29,8 @@ def my_input(bot, chat_id, txt, ResponseHandler):
 
 # -----------------------------------------------------------------------
 def dz1(bot, chat_id):
+    dz1_ResponseHandler = lambda message: bot.send_message(chat_id, f"Ваше имя - {message.text}!")
     my_input(bot, chat_id, "Ваше имя?", dz1_ResponseHandler)
-
-
-def dz1_ResponseHandler(bot, chat_id, message):
-    bot.send_message(chat_id, text=f"Ваше имя - {message.text}!")
 
 
 # -----------------------------------------------------------------------
@@ -53,11 +50,9 @@ def dz2_ResponseHandler(bot, chat_id, age_int):
 def dz3(bot, chat_id):
     my_inputInt(bot, chat_id, "Я повторю ваш возраст несколько раз", dz3_ResponseHandler)
 
-
-def dz3_ResponseHandler(bot, chat_id, age, spam):
-    spam = age * 5
-    bot.send_message(chat_id, text=f"{spam}")
-
+def dz3_ResponseHandler(bot, chat_id, age_int):
+    for dz3_ResponseHandler in range (1, 6):
+        bot.send_message(chat_id, f"{age_int}!")
 
 # -----------------------------------------------------------------------
 def dz4(bot, chat_id):
