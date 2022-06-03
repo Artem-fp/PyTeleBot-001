@@ -7,6 +7,7 @@ import Games
 import re
 import requests
 import bs4
+import DZ
 
 bot = telebot.TeleBot(
     '5241329098:AAFwTwBMDbk8fD-GVHlXBlz52jI9X4SWoVk')
@@ -58,8 +59,8 @@ def get_text_messages(message):
             bot.send_message(chat_id, text=text_game)
 
         elif subMenu.name == "Игра КНБ":
-            RPS = Games.newgame(chat_id, Games.RPS())  # создаём новый экземпляр игры и регистрируем его
-            bot.send_photo(chat_id, photo=RPS.url_picRules, caption=RPS.text_rules, parse_mode='HTML')
+            GameRPS = Games.newgame(chat_id, Games.GameRPS())  # создаём новый экземпляр игры и регистрируем его
+            bot.send_photo(chat_id, photo=GameRPS.url_picRules, caption=GameRPS.text_rules, parse_mode='HTML')
 
         return  # мы вошли в подменю, и дальнейшая обработка не требуется
 
@@ -126,7 +127,7 @@ def get_dog():  # Cсылки на картиночки собак
     file_extension = ''
     while file_extension not in allowed_extension:
         url = image_url
-        file_extension = re.search("([^.]*)$", url).group(1).lower()
+        file_extension = re.search("([^.]*)$" , url).group(1).lower()
     return url
 
 

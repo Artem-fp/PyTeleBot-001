@@ -96,7 +96,7 @@ def goto_menu(bot, chat_id, name_menu):
         return None
 
 
-m_main = Menu("Главное меню", buttons=["Развлечения", "Игры", "Помощь"])
+m_main = Menu("Главное меню", buttons=["Развлечения", "Игры", "ДЗ", "Помощь"])
 
 m_games = Menu("Игры", buttons=["Игра К-Н-Б", "Игра в 21", "Игра КНБ-MP", "Выход"], parent=m_main)
 m_game_21 = Menu("Игра в 21", buttons=["Карту!", "Стоп!", "Выход"], parent=m_games, module="Games")

@@ -171,9 +171,9 @@ class Game21:
         return text_game
 
 # -----------------------------------------------------------------------
-class GameRPS:
+class GaRPS():
     values = ["Камень", "Ножницы", "Бумага"]
-    name = "Игра Камень-Ножницы-Бумага (Мультиплеер)"
+    name = ("Игра Камень-Ножницы-Бумага (Мультиплеер)")
     text_rules = "<b>Победитель определяется по следующим правилам:</b>\n" \
                  "1. Камень побеждает ножницы\n" \
                  "2. Бумага побеждает камень\n" \
@@ -478,14 +478,15 @@ def get_text_messages(bot, cur_user, message):
         return
 
     # ======================================= реализация игры Камень-ножницы-бумага
-    elif ms_text in GameRPS.values:
-        gameRSP = getgame(chatID)
-        if gameRSP is None:  # если мы случайно попали в это меню, а объекта с игрой нет
+    elif ms_text in GaRPS.values:
+        GRPS = GaRPS()
+        GameRPS = getgame(chatID)
+        if GameRPS is None:  # если мы случайно попали в это меню, а объекта с игрой нет
             goto_menu(bot, chatID, "Выход")
             return
-        text_game = gameRSP.playerChoice(ms_text)
+        text_game = GameRPS.playerChoice(ms_text)
         bot.send_message(chatID, text=text_game)
-        gameRSP.newGame()
+        GRPS.newGame()
 
     # ======================================= реализация игры Камень-ножницы-бумага Multiplayer
     elif ms_text == "Игра КНБ-MP":
