@@ -4,9 +4,7 @@ from telebot import types  # Импорт модуля Requests
 import MenuBot
 from MenuBot import Menu
 import Games
-import re
-import requests
-import bs4
+import MyGame
 import DZ
 
 bot = telebot.TeleBot(
@@ -37,12 +35,6 @@ def get_text_messages(message):
     chat_id = message.chat.id
     ms_text = message.text
 
-    if ms_text == "Прислать собаку":
-        bot.send_message(chat_id, get_dog())
-
-    elif ms_text == "Прислать анекдот":
-        bot.send_message(chat_id, text=get_anekdot())
-
     cur_user = MenuBot.Users.getUser(chat_id)
     if cur_user is None:
         cur_user = MenuBot.Users(chat_id, message.json["from"])
@@ -59,10 +51,14 @@ def get_text_messages(message):
             bot.send_message(chat_id, text=text_game)
 
         elif subMenu.name == "Игра КНБ":
-            GameRPS = Games.newgame(chat_id, Games.GameRPS())  # создаём новый экземпляр игры и регистрируем его
+            GameRPS = Games.newgame(chat_id, Games.RPS())  # создаём новый экземпляр игры и регистрируем его
             bot.send_photo(chat_id, photo=GameRPS.url_picRules, caption=GameRPS.text_rules, parse_mode='HTML')
 
-        return  # мы вошли в подменю, и дальнейшая обработка не требуется
+        elif subMenu.name == "Слоты":
+            slots = MyGame.newgame(chat_id, MyGame.Slots())
+
+
+        return  # мы вошли в под-меню, и дальнейшая обработка не требуется
 
     # проверим, является ли текст текущий команды кнопкой действия
     cur_menu = Menu.getCurMenu(chat_id)
@@ -71,9 +67,6 @@ def get_text_messages(message):
 
         if module != "":  # принцип инкапсуляции
             exec(module + ".get_text_messages(bot, cur_user, message)")
-
-        if ms_text == "Помощь":
-            help(bot, chat_id)
 
     else:  # ======================================= случайный текст
         bot.send_message(chat_id, text="Мне жаль, я не понимаю вашу команду: " + ms_text)
@@ -99,47 +92,11 @@ def callback_worker(call):
 
 # -----------------------------------------------------------------------
 # Модули запросов
-def help(bot, chat_id):
-    bot.send_message(chat_id, "Автор: Боярченко Артём")
-    key1 = types.InlineKeyboardMarkup()
-    btn1 = types.InlineKeyboardButton(text="Напишите автору", url="https://t.me/ArtemBoyarch")  # Ссылка на себя
-    key1.add(btn1)
-    img = open('i6lASX19BOY.jpg', 'rb')
-    bot.send_photo(chat_id, img, reply_markup=key1)
-
-    bot.send_message(chat_id, "Активные пользователи чат-бота:")
-    for el in MenuBot.Users.activeUsers:
-        bot.send_message(chat_id, MenuBot.Users.activeUsers[el].getUserHTML(), parse_mode='HTML')
-
-
 def MediaCards(game21):
     medias = []
     for url in game21.arr_cards_URL:
         medias.append(types.InputMediaPhoto(url))
     return medias
-
-
-def get_dog():  # Cсылки на картиночки собак
-    global url
-    contents = requests.get('https://random.dog/woof.json').json()
-    image_url = contents['url']
-    allowed_extension = ['jpg', 'jpeg', 'png']
-    file_extension = ''
-    while file_extension not in allowed_extension:
-        url = image_url
-        file_extension = re.search("([^.]*)$" , url).group(1).lower()
-    return url
-
-
-def get_anekdot():  # Анекдоты (Проблема с модулем)
-    array_anekdots = []
-    req_anek = requests.get("http://anekdotme.ru/random")
-    soup = bs4.BeautifulSoup(req_anek.text, "html.parser")
-    result_find = soup.select('.anekdot_text')
-    for result in result_find:
-        array_anekdots.append(result.getText().strip())
-    return array_anekdots[0]
-
 
 # -----------------------------------------------------------------------
 

@@ -146,7 +146,7 @@ class Game21:
         new_cards = response.json()
         if new_cards["success"] != True:
             return False
-        self.remaining = new_cards["remaining"]  # обновим в классе количество оставшихся карт в колоде
+        self.remaining = new_cards["remaining"]  # обновление в классе количества оставшихся карт в колоде
 
         arr_newCards = []
         for card in new_cards["cards"]:
@@ -171,9 +171,9 @@ class Game21:
         return text_game
 
 # -----------------------------------------------------------------------
-class GaRPS():
+class RPS:
     values = ["Камень", "Ножницы", "Бумага"]
-    name = ("Игра Камень-Ножницы-Бумага (Мультиплеер)")
+    name = "Игра Камень-Ножницы-Бумага (Мультиплеер)"
     text_rules = "<b>Победитель определяется по следующим правилам:</b>\n" \
                  "1. Камень побеждает ножницы\n" \
                  "2. Бумага побеждает камень\n" \
@@ -207,6 +207,7 @@ class GaRPS():
 
         return f"{player1Choice} vs {self.computerChoice} = " + winner
 
+rps = RPS()
 # =========================================
 
 class GameRPS_Multiplayer:
@@ -456,6 +457,7 @@ def get_text_messages(bot, cur_user, message):
     chatID = message.chat.id
     ms_text = message.text
 
+
     # ======================================= реализация игры в 21
     if ms_text == "Карту!":
         game21 = getgame(chatID)
@@ -478,15 +480,18 @@ def get_text_messages(bot, cur_user, message):
         return
 
     # ======================================= реализация игры Камень-ножницы-бумага
-    elif ms_text in GaRPS.values:
-        GRPS = GaRPS()
-        GameRPS = getgame(chatID)
-        if GameRPS is None:  # если мы случайно попали в это меню, а объекта с игрой нет
-            goto_menu(bot, chatID, "Выход")
-            return
-        text_game = GameRPS.playerChoice(ms_text)
+    elif ms_text in rps.values:
+        GRPS = RPS()
+        text_game = GRPS.playerChoice(ms_text)
         bot.send_message(chatID, text=text_game)
         GRPS.newGame()
+        # RPS = getgame(chatID)
+        # if RPS is None:  # если мы случайно попали в это меню, а объекта с игрой нет
+        #     goto_menu(bot, chatID, "Выход")
+        #     return
+        # text_game = RPS.playerChoice(ms_text)
+        # bot.send_message(chatID, text=text_game)
+        # RPS.newGame()
 
     # ======================================= реализация игры Камень-ножницы-бумага Multiplayer
     elif ms_text == "Игра КНБ-MP":
@@ -507,4 +512,4 @@ def get_text_messages(bot, cur_user, message):
 
 # -----------------------------------------------------------------------
 if __name__ == "__main__":
-    print("Этот код должен использоваться ТОЛЬКО в качестве модуля!")
+    print("Этот код должен использоваться только в качестве модуля")
